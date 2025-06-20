@@ -1,0 +1,39 @@
+.map-container {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    background: #f8f9fa;
+}
+
+.robot-marker {
+    width: 32px !important;
+    height: 32px !important;
+    margin-left: -16px;
+    margin-top: -16px;
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.goal-marker {
+    width: 24px !important;
+    height: 24px !important;
+    margin-left: -12px;
+    margin-top: -12px;
+    background-color: #ff4040;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}

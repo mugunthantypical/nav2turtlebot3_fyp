@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMR Warehouse Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
+    <link href="css/map.css" rel="stylesheet">
+    
+    <!-- ROS Libraries -->
+    <script src="lib/eventemitter2.min.js"></script>
+    <script src="lib/roslib.min.js"></script>
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    <script src="lib/ros2d.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-robot me-2"></i>
+                AMR Warehouse Management
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Left Panel - Task Assignment -->
+            <div class="col-md-3 p-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tasks me-2"></i>Assign Goal to AMR
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Goal Selection</label>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary" id="setGoalBtn" style="display: block;">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Set Goal
+                                </button>
+                                <button type="button" class="btn btn-outline-success" id="goalChosenBtn" style="display: none;">
+                                    <i class="fas fa-check me-2"></i>Goal Chosen
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="cancelGoalBtn" style="display: none;">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                            </div>
+                            <small class="text-muted">Click "Set Goal" then click on the map to select destination</small>
+                        </div>
+
+                        <div id="goalCoordinates" class="mb-3 p-2 bg-light rounded d-none">
+                            <small class="text-muted">Selected Goal:</small><br>
+                            <span id="goalCoordsText">No goal selected</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="taskDescription" class="form-label">Task Description</label>
+                            <textarea class="form-control" id="taskDescription" rows="3" placeholder="Enter task description..."></textarea>
+                        </div>
+
+                        <div class="mb-3" id="robotSelectionWrapper">
+                            <label for="robotSelection" class="form-label">Select AMR</label>
+                            <select class="form-select" id="robotSelection">
+                                <!-- Robot options will be populated dynamically -->
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary" id="assignTaskBtn" disabled>
+                                <i class="fas fa-paper-plane me-2"></i>Assign Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Center Panel - Map -->
+            <div class="col-md-6 p-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-map me-2"></i>Robot Map & Navigation
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="map-container">
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Dashboard -->
+            <div class="col-md-3 p-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Dashboard
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-success">Connected</span>
+                                <small>ROS2 Bridge</small>
+                            </div>
+                        </div>
+
+                        <div class="container mb-3">
+                            <div class="row g-2 justify-content-center">
+                                <div class="col-6">
+                                    <div class="p-2 bg-primary text-white rounded text-center">
+                                        <div>Total Online</div>
+                                        <h3 id="totalOnline">0</h3>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-success text-white rounded text-center">
+                                        <div>Available</div>
+                                        <h3 id="totalAvailable">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center mt-2">
+                                <div class="col-6 d-flex justify-content-center">
+                                    <div class="p-2 bg-warning text-white rounded text-center" style="width:100%;">
+                                        <div>Busy</div>
+                                        <h3 id="totalBusy">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6>Robot Status</h6>
+                            <div id="robotStatusList" class="list-group">
+                                <!-- Robot status items will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/ros-connection.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/task-assignment.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+    // Dynamically populate robot selection and status list
+    function updateRobotUI() {
+        if (!window.rosConnection || !window.rosConnection.getAllRobotData) return;
+        const robotData = window.rosConnection.getAllRobotData();
+        // Update robot selection dropdown
+        const robotSelect = document.getElementById('robotSelection');
+        if (robotSelect) {
+            robotSelect.innerHTML = '<option value="">Choose robot...</option>';
+            Object.keys(robotData).forEach(robotId => {
+                const label = robotId === 'default' ? 'Robot' : robotId.toUpperCase();
+                const opt = document.createElement('option');
+                opt.value = robotId;
+                opt.textContent = label;
+                robotSelect.appendChild(opt);
+            });
+        }
+        // Update robot status list
+        const statusList = document.getElementById('robotStatusList');
+        if (statusList) {
+            statusList.innerHTML = '';
+            Object.keys(robotData).forEach(robotId => {
+                const label = robotId === 'default' ? 'Robot' : robotId.toUpperCase();
+                const div = document.createElement('div');
+                div.className = 'list-group-item d-flex justify-content-between align-items-center';
+                div.innerHTML = `${label}<span id="${robotId}_status" class="badge bg-secondary">Offline</span>`;
+                statusList.appendChild(div);
+            });
+        }
+    }
+    // Update UI after DOM and ROS connection are ready
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(updateRobotUI, 1000); // Delay to allow rosConnection to initialize
+        // Optionally, update periodically in case robots change
+        setInterval(updateRobotUI, 3000);
+    });
+    </script>
+</body>
+</html>
